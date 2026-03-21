@@ -1,11 +1,156 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive icon foreground — 108×108 dp viewport.
+  Safe zone: 18–90 (center 72×72). All content lives inside it.
+
+  Layout (left → right):
+    Megaphone: mouthpiece cap (x≈18–29) + horn (x≈29–52) + handle below
+    Starburst:  12-point white star centered at (72, 54), outer R=20, inner r=10
+    声 kanji:   black fills centred inside the burst
+
+  Starburst vertices (outer/inner alternating, start −90°, step 30°):
+    i=0  outer −90°:  (72, 34)
+    i=1  inner −75°:  (74.6, 44.3)
+    i=2  outer −60°:  (82,   36.7)
+    i=3  inner −45°:  (79.1, 46.9)
+    i=4  outer −30°:  (89.3, 44)
+    i=5  inner −15°:  (81.7, 51.4)
+    i=6  outer   0°:  (92,   54)      ← rightmost
+    i=7  inner  15°:  (81.7, 56.6)
+    i=8  outer  30°:  (89.3, 64)
+    i=9  inner  45°:  (79.1, 61.1)
+    i=10 outer  60°:  (82,   71.3)
+    i=11 inner  75°:  (74.6, 63.7)
+    i=12 outer  90°:  (72,   74)      ← bottommost
+    i=13 inner 105°:  (69.4, 63.7)
+    i=14 outer 120°:  (62,   71.3)
+    i=15 inner 135°:  (64.9, 61.1)
+    i=16 outer 150°:  (54.7, 64)
+    i=17 inner 165°:  (62.3, 56.6)
+    i=18 outer 180°:  (52,   54)      ← leftmost, overlaps horn opening
+    i=19 inner 195°:  (62.3, 51.4)
+    i=20 outer 210°:  (54.7, 44)
+    i=21 inner 225°:  (64.9, 46.9)
+    i=22 outer 240°:  (62,   36.7)
+    i=23 inner 255°:  (69.4, 44.3)
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- ══════════════════════════════════════════
+         1. WHITE STARBURST  (drawn first → behind megaphone tip)
+         ══════════════════════════════════════════ -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M44,28 L44,52 L28,52 L28,56 L44,56 L44,80 L48,80 L48,56 L64,56 L64,52 L48,52 L48,28 Z" />
+        android:strokeColor="#111111"
+        android:strokeWidth="1.2"
+        android:pathData="
+            M 72,34
+            L 74.6,44.3  L 82,36.7
+            L 79.1,46.9  L 89.3,44
+            L 81.7,51.4  L 92,54
+            L 81.7,56.6  L 89.3,64
+            L 79.1,61.1  L 82,71.3
+            L 74.6,63.7  L 72,74
+            L 69.4,63.7  L 62,71.3
+            L 64.9,61.1  L 54.7,64
+            L 62.3,56.6  L 52,54
+            L 62.3,51.4  L 54.7,44
+            L 64.9,46.9  L 62,36.7
+            L 69.4,44.3  Z"/>
+
+    <!-- ══════════════════════════════════════════
+         2. MEGAPHONE HORN  (dark crimson trapezoid)
+            Left narrow  x=29, y=46–63  (17 units tall)
+            Right wide   x=52, y=31–77  (46 units tall)
+         ══════════════════════════════════════════ -->
+    <path
+        android:fillColor="#B01840"
+        android:strokeColor="#111111"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round"
+        android:pathData="M 29,46 L 52,31 L 52,77 L 29,63 Z"/>
+
+    <!-- Bell rim — narrow vertical bar at horn opening -->
+    <path
+        android:fillColor="#B01840"
+        android:strokeColor="#111111"
+        android:strokeWidth="1.5"
+        android:pathData="M 50,29 L 54,29 L 54,79 L 50,79 Z"/>
+
+    <!-- ══════════════════════════════════════════
+         3. MOUTHPIECE CAP  (dark green, rounded rect)
+            x=18–29, y=46–63
+         ══════════════════════════════════════════ -->
+    <path
+        android:fillColor="#2B6E30"
+        android:strokeColor="#111111"
+        android:strokeWidth="2.5"
+        android:pathData="
+            M 18,48 Q 18,46 20,46
+            L 27,46 Q 29,46 29,48
+            L 29,61 Q 29,63 27,63
+            L 20,63 Q 18,63 18,61 Z"/>
+
+    <!-- Mouthpiece speaker lines (3 horizontal strokes) -->
+    <path
+        android:strokeColor="#111111"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M 20,51 L 27,51 M 20,54.5 L 27,54.5 M 20,58 L 27,58"/>
+
+    <!-- ══════════════════════════════════════════
+         4. HANDLE  (dark green trapezoid below mouthpiece)
+         ══════════════════════════════════════════ -->
+    <path
+        android:fillColor="#2B6E30"
+        android:strokeColor="#111111"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round"
+        android:pathData="M 29,63 L 41,63 L 39,79 L 27,79 Z"/>
+
+    <!-- ══════════════════════════════════════════
+         5. 声  KANJI  (black fills, centred at 72,54)
+            Bounding box: x 63–81 (w=18), y 39–68 (h=29)
+            Approximates: 士-top + box-with-divider below
+
+            士 component (top):
+              – narrow horiz at y=39–41 (x 66–78)
+              – short vertical at x=69–71 (y 39–44)
+              – wide horiz  at y=44–46 (x 63–81)
+
+            Box component (bottom, like 耳/日):
+              – left wall   x=63–65, y=46–68
+              – right wall  x=79–81, y=46–68
+              – mid horiz   y=56–58, x=63–81
+              – bottom      y=66–68, x=63–81
+         ══════════════════════════════════════════ -->
+
+    <!-- 士 top: narrow horizontal -->
+    <path android:fillColor="#111111"
+        android:pathData="M 66,39 L 78,39 L 78,41 L 66,41 Z"/>
+    <!-- 士: short vertical stem -->
+    <path android:fillColor="#111111"
+        android:pathData="M 69,39 L 71,39 L 71,44 L 69,44 Z"/>
+    <!-- 士 bottom / box top: wide horizontal -->
+    <path android:fillColor="#111111"
+        android:pathData="M 63,44 L 81,44 L 81,46 L 63,46 Z"/>
+
+    <!-- Box left wall -->
+    <path android:fillColor="#111111"
+        android:pathData="M 63,46 L 65,46 L 65,68 L 63,68 Z"/>
+    <!-- Box right wall -->
+    <path android:fillColor="#111111"
+        android:pathData="M 79,46 L 81,46 L 81,68 L 79,68 Z"/>
+    <!-- Box middle divider -->
+    <path android:fillColor="#111111"
+        android:pathData="M 63,56 L 81,56 L 81,58 L 63,58 Z"/>
+    <!-- Box bottom -->
+    <path android:fillColor="#111111"
+        android:pathData="M 63,66 L 81,66 L 81,68 L 63,68 Z"/>
+
 </vector>
