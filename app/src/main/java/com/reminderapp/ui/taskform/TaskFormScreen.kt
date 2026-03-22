@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -65,19 +66,33 @@ fun TaskFormScreen(
                 maxLines = 3
             )
 
-            // Tipo de schedule
-            Text("Tipo de recordatorio", style = MaterialTheme.typography.labelLarge)
-            ScheduleTypeSelector(
-                selected = viewModel.scheduleType,
-                onSelect = { viewModel.scheduleType = it }
-            )
+            // Toggle alarma
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Con aviso", style = MaterialTheme.typography.labelLarge)
+                Switch(
+                    checked = viewModel.hasAlarm,
+                    onCheckedChange = { viewModel.hasAlarm = it }
+                )
+            }
 
-            // Sub-form por tipo
-            when (viewModel.scheduleType) {
-                ScheduleType.ONE_TIME -> OneTimeForm(viewModel)
-                ScheduleType.INTERVAL -> IntervalForm(viewModel)
-                ScheduleType.DAILY -> TimeForm(viewModel)
-                ScheduleType.WEEKLY -> WeeklyForm(viewModel)
+            // Tipo de schedule (solo si tiene alarma)
+            if (viewModel.hasAlarm) {
+                Text("Tipo de recordatorio", style = MaterialTheme.typography.labelLarge)
+                ScheduleTypeSelector(
+                    selected = viewModel.scheduleType,
+                    onSelect = { viewModel.scheduleType = it }
+                )
+
+                when (viewModel.scheduleType) {
+                    ScheduleType.ONE_TIME -> OneTimeForm(viewModel)
+                    ScheduleType.INTERVAL -> IntervalForm(viewModel)
+                    ScheduleType.DAILY -> TimeForm(viewModel)
+                    ScheduleType.WEEKLY -> WeeklyForm(viewModel)
+                }
             }
 
             // Error de validación
