@@ -10,10 +10,10 @@ private val json = Json { ignoreUnknownKeys = true }
 class Converters {
 
     @TypeConverter
-    fun scheduleToJson(schedule: Schedule): String =
-        json.encodeToString(schedule)
+    fun scheduleToJson(schedule: Schedule?): String? =
+        schedule?.let { json.encodeToString(it) }
 
     @TypeConverter
-    fun jsonToSchedule(value: String): Schedule =
-        json.decodeFromString(value)
+    fun jsonToSchedule(value: String?): Schedule? =
+        value?.let { json.decodeFromString(it) }
 }

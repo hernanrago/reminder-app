@@ -57,5 +57,6 @@ object ReminderNotificationManager {
         is com.reminderapp.data.model.Schedule.Interval -> "Cada ${s.intervalMinutes} min"
         is com.reminderapp.data.model.Schedule.Daily -> "Diario %02d:%02d".format(s.hourOfDay, s.minute)
         is com.reminderapp.data.model.Schedule.Weekly -> "Semanal %02d:%02d".format(s.hourOfDay, s.minute)
+        null -> ""
     }
 }

@@ -28,13 +28,16 @@ class BootReceiver : BroadcastReceiver() {
                 val db = AppDatabase.getInstance(context)
 
                 tasks.forEach { task ->
-                    when (task.schedule) {
+                    when (val schedule = task.schedule) {
+                        null -> {
+                            // Nota sin alarma, nada que reprogramar
+                        }
                         is Schedule.Interval -> {
                             IntervalWorkScheduler.schedule(context, task)
                         }
                         else -> {
                             // Recalcular next fire desde ahora (el tiempo original puede estar en el pasado)
-                            val next = NextFireTimeCalculator.compute(task.schedule)
+                            val next = NextFireTimeCalculator.compute(schedule)
                             if (next != null) {
                                 val updated = task.copy(nextFireAtMillis = next)
                                 db.taskDao().update(updated)

@@ -60,6 +60,10 @@ class AlarmReceiver : BroadcastReceiver() {
                         // Manejado por WorkManager, no debería llegar aquí
                         Log.w(TAG, "Interval task ${task.id} received by AlarmReceiver — unexpected")
                     }
+                    null -> {
+                        // Tarea sin alarma — no debería disparar nunca
+                        Log.w(TAG, "Task ${task.id} has no schedule, ignoring alarm")
+                    }
                 }
             } finally {
                 pendingResult.finish()

@@ -11,8 +11,8 @@ data class Task(
     val title: String,
     val description: String = "",
 
-    // Almacenado como JSON via TypeConverter
-    val schedule: Schedule,
+    // Almacenado como JSON via TypeConverter. Null = nota sin alarma.
+    val schedule: Schedule? = null,
 
     val isActive: Boolean = true,
 

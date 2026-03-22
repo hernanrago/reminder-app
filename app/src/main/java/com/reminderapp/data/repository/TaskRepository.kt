@@ -16,13 +16,12 @@ class TaskRepository(private val context: Context) {
     fun getAll(): Flow<List<Task>> = dao.getAll()
 
     suspend fun save(task: Task) {
-        val nextFire = NextFireTimeCalculator.compute(task.schedule)
+        val nextFire = task.schedule?.let { NextFireTimeCalculator.compute(it) }
         val taskToSave = task.copy(nextFireAtMillis = nextFire)
 
         val id = if (task.id == 0) {
             dao.insert(taskToSave).toInt()
         } else {
-            // Cancelar schedule anterior antes de actualizar
             cancelSchedule(task.id, task.schedule)
             dao.update(taskToSave)
             task.id
@@ -41,7 +40,7 @@ class TaskRepository(private val context: Context) {
 
     suspend fun setActive(task: Task, active: Boolean) {
         if (active) {
-            val next = NextFireTimeCalculator.compute(task.schedule)
+            val next = task.schedule?.let { NextFireTimeCalculator.compute(it) }
             val updated = task.copy(isActive = true, nextFireAtMillis = next)
             dao.update(updated)
             if (next != null) scheduleTask(updated)
@@ -54,13 +53,15 @@ class TaskRepository(private val context: Context) {
     private fun scheduleTask(task: Task) {
         when (task.schedule) {
             is Schedule.Interval -> IntervalWorkScheduler.schedule(context, task)
+            null -> return
             else -> AlarmScheduler.schedule(context, task)
         }
     }
 
-    private fun cancelSchedule(taskId: Int, schedule: Schedule) {
+    private fun cancelSchedule(taskId: Int, schedule: Schedule?) {
         when (schedule) {
             is Schedule.Interval -> IntervalWorkScheduler.cancel(context, taskId)
+            null -> return
             else -> AlarmScheduler.cancel(context, taskId)
         }
     }
