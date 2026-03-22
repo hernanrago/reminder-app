@@ -7,21 +7,21 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.reminderapp.data.model.Tag
 import com.reminderapp.data.model.Task
 
-@Database(entities = [Task::class], version = 2, exportSchema = false)
+@Database(entities = [Task::class, Tag::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun taskDao(): TaskDao
+    abstract fun tagDao(): TagDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // SQLite no permite ALTER COLUMN, hay que recrear la tabla.
-                // Cambia schedule de TEXT NOT NULL a TEXT (nullable).
                 database.execSQL("""
                     CREATE TABLE tasks_new (
                         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -43,6 +43,19 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE tags (
+                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL
+                    )
+                """.trimIndent())
+                database.execSQL("CREATE UNIQUE INDEX index_tags_name ON tags(name)")
+                database.execSQL("ALTER TABLE tasks ADD COLUMN tagId INTEGER")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -50,7 +63,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "reminder_db"
                 )
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build().also { INSTANCE = it }
             }
     }

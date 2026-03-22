@@ -19,5 +19,7 @@ data class Task(
     // Epoch millis del próximo disparo. Null si ya disparó (one-time) o inactiva.
     val nextFireAtMillis: Long? = null,
 
-    val createdAtMillis: Long = System.currentTimeMillis()
+    val createdAtMillis: Long = System.currentTimeMillis(),
+
+    val tagId: Int? = null
 )
