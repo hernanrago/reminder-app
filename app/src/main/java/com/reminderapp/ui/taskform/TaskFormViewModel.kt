@@ -10,8 +10,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.reminderapp.data.db.AppDatabase
 import com.reminderapp.data.model.Schedule
+import com.reminderapp.data.model.Tag
 import com.reminderapp.data.model.Task
+import com.reminderapp.data.repository.TagRepository
 import com.reminderapp.data.repository.TaskRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -20,12 +25,19 @@ enum class ScheduleType { ONE_TIME, INTERVAL, DAILY, WEEKLY }
 class TaskFormViewModel(app: Application) : AndroidViewModel(app) {
 
     private val repository = TaskRepository(app.applicationContext)
+    private val tagRepository = TagRepository(app.applicationContext)
     private val dao = AppDatabase.getInstance(app.applicationContext).taskDao()
 
     var title by mutableStateOf("")
     var description by mutableStateOf("")
     var scheduleType by mutableStateOf(ScheduleType.DAILY)
     var hasAlarm by mutableStateOf(false)
+
+    // Tag
+    var tagInput by mutableStateOf("")
+
+    val tags: StateFlow<List<Tag>> = tagRepository.getAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     // ONE_TIME
     var oneTimeDateMillis by mutableStateOf(System.currentTimeMillis() + 60 * 60 * 1000L)
@@ -52,6 +64,9 @@ class TaskFormViewModel(app: Application) : AndroidViewModel(app) {
             title = task.title
             description = task.description
             hasAlarm = task.schedule != null
+            task.tagId?.let { id ->
+                tagInput = AppDatabase.getInstance(getApplication()).tagDao().getById(id)?.name ?: ""
+            }
             val schedule = task.schedule ?: return@launch
             when (val s = schedule) {
                 is Schedule.OneTime -> {
@@ -103,15 +118,18 @@ class TaskFormViewModel(app: Application) : AndroidViewModel(app) {
             ScheduleType.WEEKLY -> Schedule.Weekly(selectedDays.sorted(), hourOfDay, minute)
         }
 
-        val task = Task(
-            id = editingTaskId,
-            title = title.trim(),
-            description = description.trim(),
-            schedule = schedule
-        )
-
         isSaving = true
         viewModelScope.launch {
+            val tagId = if (tagInput.isBlank()) null
+                        else tagRepository.save(tagInput.trim()).id
+
+            val task = Task(
+                id = editingTaskId,
+                title = title.trim(),
+                description = description.trim(),
+                schedule = schedule,
+                tagId = tagId
+            )
             repository.save(task)
             isSaving = false
             onSuccess()

@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,6 +65,14 @@ fun TaskFormScreen(
                 label = { Text("Descripción (opcional)") },
                 modifier = Modifier.fillMaxWidth(),
                 maxLines = 3
+            )
+
+            // Tag
+            val tagList by viewModel.tags.collectAsState()
+            TagDropdown(
+                input = viewModel.tagInput,
+                onInputChange = { viewModel.tagInput = it },
+                tags = tagList
             )
 
             // Toggle alarma
@@ -289,5 +298,62 @@ private fun TimePickerRow(hour: Int, minute: Int, onChange: (Int, Int) -> Unit) 
             title = { Text("Seleccionar hora") },
             text = { TimePicker(state = state) }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TagDropdown(
+    input: String,
+    onInputChange: (String) -> Unit,
+    tags: List<com.reminderapp.data.model.Tag>
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val filtered = tags.filter { it.name.contains(input, ignoreCase = true) }
+    val showCreate = input.isNotBlank() && tags.none { it.name.equals(input, ignoreCase = true) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded && (filtered.isNotEmpty() || showCreate),
+        onExpandedChange = { expanded = it }
+    ) {
+        OutlinedTextField(
+            value = input,
+            onValueChange = {
+                onInputChange(it)
+                expanded = true
+            },
+            label = { Text("Tag (opcional)") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            singleLine = true,
+            trailingIcon = {
+                if (input.isNotBlank()) {
+                    IconButton(onClick = { onInputChange("") }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Limpiar tag")
+                    }
+                }
+            }
+        )
+        ExposedDropdownMenu(
+            expanded = expanded && (filtered.isNotEmpty() || showCreate),
+            onDismissRequest = { expanded = false }
+        ) {
+            filtered.forEach { tag ->
+                DropdownMenuItem(
+                    text = { Text(tag.name) },
+                    onClick = {
+                        onInputChange(tag.name)
+                        expanded = false
+                    }
+                )
+            }
+            if (showCreate) {
+                DropdownMenuItem(
+                    text = { Text("Crear: \"$input\"", color = MaterialTheme.colorScheme.primary) },
+                    onClick = { expanded = false }
+                )
+            }
+        }
     }
 }
