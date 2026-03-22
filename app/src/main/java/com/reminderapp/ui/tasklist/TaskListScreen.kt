@@ -121,25 +121,29 @@ private fun TaskCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = scheduleDescription(task.schedule),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                task.nextFireAtMillis?.let {
+                if (task.schedule != null) {
+                    Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "Próximo: ${formatNextFire(it)}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = scheduleDescription(task.schedule),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
+                    task.nextFireAtMillis?.let {
+                        Text(
+                            text = "Próximo: ${formatNextFire(it)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
-            Switch(
-                checked = task.isActive,
-                onCheckedChange = { onToggleActive() }
-            )
-            Spacer(Modifier.width(4.dp))
+            if (task.schedule != null) {
+                Switch(
+                    checked = task.isActive,
+                    onCheckedChange = { onToggleActive() }
+                )
+                Spacer(Modifier.width(4.dp))
+            }
             IconButton(onClick = onEdit) {
                 Icon(Icons.Default.Edit, contentDescription = "Editar",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
