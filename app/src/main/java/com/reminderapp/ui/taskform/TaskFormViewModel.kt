@@ -25,6 +25,7 @@ class TaskFormViewModel(app: Application) : AndroidViewModel(app) {
     var title by mutableStateOf("")
     var description by mutableStateOf("")
     var scheduleType by mutableStateOf(ScheduleType.DAILY)
+    var hasAlarm by mutableStateOf(false)
 
     // ONE_TIME
     var oneTimeDateMillis by mutableStateOf(System.currentTimeMillis() + 60 * 60 * 1000L)
@@ -50,7 +51,9 @@ class TaskFormViewModel(app: Application) : AndroidViewModel(app) {
             editingTaskId = task.id
             title = task.title
             description = task.description
-            when (val s = task.schedule) {
+            hasAlarm = task.schedule != null
+            val schedule = task.schedule ?: return@launch
+            when (val s = schedule) {
                 is Schedule.OneTime -> {
                     scheduleType = ScheduleType.ONE_TIME
                     oneTimeDateMillis = s.triggerAtMillis
@@ -82,16 +85,18 @@ class TaskFormViewModel(app: Application) : AndroidViewModel(app) {
             validationError = "El título es obligatorio"
             return
         }
-        if (scheduleType == ScheduleType.WEEKLY && selectedDays.isEmpty()) {
-            validationError = "Selecciona al menos un día"
-            return
-        }
-        if (scheduleType == ScheduleType.INTERVAL && intervalMinutes < 15) {
-            validationError = "El intervalo mínimo es 15 minutos"
-            return
+        if (hasAlarm) {
+            if (scheduleType == ScheduleType.WEEKLY && selectedDays.isEmpty()) {
+                validationError = "Selecciona al menos un día"
+                return
+            }
+            if (scheduleType == ScheduleType.INTERVAL && intervalMinutes < 15) {
+                validationError = "El intervalo mínimo es 15 minutos"
+                return
+            }
         }
 
-        val schedule: Schedule = when (scheduleType) {
+        val schedule: Schedule? = if (!hasAlarm) null else when (scheduleType) {
             ScheduleType.ONE_TIME -> Schedule.OneTime(oneTimeDateMillis)
             ScheduleType.INTERVAL -> Schedule.Interval(intervalMinutes)
             ScheduleType.DAILY -> Schedule.Daily(hourOfDay, minute)
