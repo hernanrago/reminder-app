@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.reminderapp.data.model.Schedule
+import com.reminderapp.data.model.Tag
 import com.reminderapp.data.model.Task
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,7 +27,7 @@ fun TaskListScreen(
     onEditTask: (Int) -> Unit,
     viewModel: TaskListViewModel = viewModel()
 ) {
-    val tasks by viewModel.tasks.collectAsState()
+    val groups by viewModel.groupedTasks.collectAsState()
     var taskToDelete by remember { mutableStateOf<Task?>(null) }
 
     Scaffold(
@@ -39,7 +40,7 @@ fun TaskListScreen(
             }
         }
     ) { padding ->
-        if (tasks.isEmpty()) {
+        if (groups.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
@@ -57,13 +58,20 @@ fun TaskListScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(tasks, key = { it.id }) { task ->
-                    TaskCard(
-                        task = task,
-                        onToggleActive = { viewModel.toggleActive(task) },
-                        onEdit = { onEditTask(task.id) },
-                        onDelete = { taskToDelete = task }
-                    )
+                groups.forEach { (tag, items) ->
+                    if (tag != null) {
+                        item(key = "header_${tag.id}") {
+                            TagHeader(tag)
+                        }
+                    }
+                    items(items, key = { it.task.id }) { taskWithTag ->
+                        TaskCard(
+                            task = taskWithTag.task,
+                            onToggleActive = { viewModel.toggleActive(taskWithTag.task) },
+                            onEdit = { onEditTask(taskWithTag.task.id) },
+                            onDelete = { taskToDelete = taskWithTag.task }
+                        )
+                    }
                 }
             }
         }
@@ -84,6 +92,25 @@ fun TaskListScreen(
                 TextButton(onClick = { taskToDelete = null }) { Text("Cancelar") }
             }
         )
+    }
+}
+
+@Composable
+private fun TagHeader(tag: Tag) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        HorizontalDivider(modifier = Modifier.weight(1f))
+        Text(
+            text = "  ${tag.name}  ",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold
+        )
+        HorizontalDivider(modifier = Modifier.weight(1f))
     }
 }
 
