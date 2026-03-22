@@ -20,8 +20,26 @@ abstract class AppDatabase : RoomDatabase() {
 
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // La columna schedule ya es TEXT y permite NULL en SQLite.
-                // Room solo necesita este objeto para no invalidar la BD.
+                // SQLite no permite ALTER COLUMN, hay que recrear la tabla.
+                // Cambia schedule de TEXT NOT NULL a TEXT (nullable).
+                database.execSQL("""
+                    CREATE TABLE tasks_new (
+                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        title TEXT NOT NULL,
+                        description TEXT NOT NULL,
+                        schedule TEXT,
+                        isActive INTEGER NOT NULL,
+                        nextFireAtMillis INTEGER,
+                        createdAtMillis INTEGER NOT NULL
+                    )
+                """.trimIndent())
+                database.execSQL("""
+                    INSERT INTO tasks_new
+                    SELECT id, title, description, schedule, isActive, nextFireAtMillis, createdAtMillis
+                    FROM tasks
+                """.trimIndent())
+                database.execSQL("DROP TABLE tasks")
+                database.execSQL("ALTER TABLE tasks_new RENAME TO tasks")
             }
         }
 
